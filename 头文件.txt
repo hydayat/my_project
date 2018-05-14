@@ -1,0 +1,208 @@
+#pragma once
+#include<cstring>
+#include<iostream>
+using namespace std;
+class mypointer {
+public:
+	mypointer(size_t x);
+	~mypointer();
+	char* p_str;
+	int num;
+	int len;
+};
+class MyString {
+public:
+	MyString();
+	MyString(const char* p1);
+	MyString(const MyString& mystr);
+	~MyString();
+	int size()const;
+	friend ostream &operator<<(ostream &os, const MyString &mystr);
+	void append(const char* p);
+	void append(const MyString& mystr);
+	char& operator[](int x) const {
+		return *((*p_mp).p_str + x);
+	}
+	char& operator[](int x) {
+		mypointer *p_last_mp = p_mp;
+		p_mp = new mypointer((*p_last_mp).len);
+		for (int i = 0;i != (*p_last_mp).len;i++) {
+			*((*p_mp).p_str + i) = *((*p_last_mp).p_str + i);
+		}
+		if ((*p_last_mp).num == 1)
+			delete p_last_mp;
+		else
+			(*p_last_mp).num--;
+		return *((*p_mp).p_str + x);
+	}
+	friend bool operator==(const MyString& mystr1, const MyString& mystr2);
+	friend bool operator<(const MyString& mystr1, const MyString& mystr2);
+	friend bool operator<=(const MyString& mystr1, const MyString& mystr2);
+
+private:
+	mypointer * p_mp;
+};
+MyString::MyString() {
+	p_mp = 0;
+}
+MyString::MyString(const char* p1) {
+	if (strlen(p1)) {
+		p_mp = new mypointer(strlen(p1));
+		for (int i = 0;i != strlen(p1);i++) {
+			*((*p_mp).p_str + i) = *(p1 + i);
+		}
+		(*p_mp).len = strlen(p1);
+	}
+	else {
+		p_mp = 0;
+	}
+}
+MyString::MyString(const MyString& mystr) {
+	if (mystr.p_mp) {
+		p_mp = mystr.p_mp;
+		(*mystr.p_mp).num++;
+	}
+	else
+		p_mp = 0;
+}
+MyString::~MyString() {
+	if (p_mp) {
+		if ((*p_mp).num == 1) {
+			delete p_mp;
+		}
+		else
+			(*p_mp).num--;
+	}
+}
+int MyString::size() const {
+	if (p_mp)
+		return (*p_mp).len;
+	else
+		return 0;
+};
+ostream &operator<<(ostream &os, const MyString &mystr)
+{
+	for (char* p = (*mystr.p_mp).p_str;p != (*mystr.p_mp).p_str + (*mystr.p_mp).len;p++)
+		os << *p;
+	return os;
+}
+void MyString::append(const char* p) {
+	mypointer* p_last_mp = p_mp;
+	p_mp = new mypointer(strlen(p) + (*p_last_mp).len);
+	for (int i = 0;i != (*p_last_mp).len;i++)
+		*((*p_mp).p_str + i) = *((*p_last_mp).p_str + i);
+	for (int j = 0;j != strlen(p);j++)
+		*((*p_mp).p_str + (*p_last_mp).len + j) = *(p + j);
+	if ((*p_last_mp).num == 1) {
+		delete p_last_mp;
+	}
+	else {
+		(*p_last_mp).num--;
+	}
+}
+void MyString::append(const MyString& mystr) {
+	if (mystr.p_mp && (*mystr.p_mp).len>0) {
+		mypointer* p_last_mp = p_mp;
+		p_mp = new mypointer((*mystr.p_mp).len + (*p_last_mp).len);
+		for (int i = 0;i != (*p_last_mp).len;i++)
+			*((*p_mp).p_str + i) = *((*p_last_mp).p_str + i);
+		for (int j = 0;j != (*mystr.p_mp).len;j++)
+			*((*p_mp).p_str + (*p_last_mp).len + j) = *((*mystr.p_mp).p_str + j);
+		if ((*p_last_mp).num == 1) {
+			delete p_last_mp;
+		}
+		else {
+			(*p_last_mp).num--;
+		}
+	}
+}
+bool operator==(const MyString& mystr1, const MyString& mystr2) {
+	if (mystr1.p_mp == 0 && mystr2.p_mp == 0)
+		return true;
+	else if (mystr1.p_mp && mystr2.p_mp && (*mystr1.p_mp).len == (*mystr2.p_mp).len) {
+		for (int i = 0;i != (*mystr1.p_mp).len;i++) {
+			if (*(mystr1.p_mp->p_str + i) != *(mystr2.p_mp->p_str + i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool operator!=(const MyString& mystr1, const MyString& mystr2) {
+	if (!(mystr1 == mystr2)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+bool operator<(const MyString& mystr1, const MyString& mystr2) {
+	if (mystr1.p_mp && mystr2.p_mp) {
+		int len_min = (mystr1.p_mp->len <= mystr2.p_mp->len ? mystr1.p_mp->len : mystr2.p_mp->len);
+		for (int i = 0;i != len_min;i++) {
+			if (*(mystr1.p_mp->p_str + i) > *(mystr2.p_mp->p_str + i)) {
+				return false;
+			}
+			else if (*(mystr1.p_mp->p_str + i) < *(mystr2.p_mp->p_str + i)) {
+				return true;
+			}
+		}
+		if (mystr1.p_mp->len < mystr2.p_mp->len) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if (!mystr1.p_mp && mystr2.p_mp)
+		return true;
+	else
+		return false;
+}
+bool operator<=(const MyString& mystr1, const MyString& mystr2) {
+	if (mystr1 == mystr2 || mystr1 < mystr2) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+bool operator>(const MyString& mystr1, const MyString& mystr2) {
+	if (!(mystr1 == mystr2) && !(mystr1 < mystr2)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+bool operator>=(const MyString& mystr1, const MyString& mystr2) {
+	if (mystr1 == mystr2 || mystr1 > mystr2) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+mypointer::mypointer(size_t x) {
+	p_str = new char[x];
+	num = 1;
+	len = x;
+}
+mypointer::~mypointer() {
+	delete[]p_str;
+}
